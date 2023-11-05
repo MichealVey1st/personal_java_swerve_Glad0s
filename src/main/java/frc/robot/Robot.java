@@ -1,26 +1,38 @@
 package frc.robot;
 
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.livewindow.LiveWindow;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.Timer;
+
 
 public class Robot extends TimedRobot {
 
-  private xbox = new XboxController(0);
-  private final Timer m_timer = new Timer();
-  Translation2d m_frontLeftLocation = new Translation2d(0.762, 0.762);
-  Translation2d m_frontRightLocation = new Translation2d(0.762, -0.762);
-  Translation2d m_backLeftLocation = new Translation2d(-0.762, 0.762);
-  Translation2d m_backRightLocation = new Translation2d(-0.762, -0.762);
+  private final XboxController m_controller = new XboxController(0);
+	private final DriveTrain m_swerve = new DriveTrain();
 
-  SwerveDriveKinematics m_Kinematics = new SwerveDriveKinematics(m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation, m_backRightLocation);
-  
+  // Pigeon docs
+  // https://docs.wpilib.org/en/stable/docs/software/hardware-apis/sensors/gyros-software.html#pigeon
 
+  // Shufffleboard
+  // https://docs.wpilib.org/en/stable/docs/software/dashboards/shuffleboard/getting-started/shuffleboard-tour.html#tour-of-shuffleboard
+
+  // Falcon setup example
+  // private final WPI_TalonFX m_leftDrive = new WPI_TalonFX(1);
+  // private final WPI_TalonFX m_rightDrive = new WPI_TalonFX(2);
+
+  // Kinematics & Chassis Speeds class
+  // https://docs.wpilib.org/en/stable/docs/software/kinematics-and-odometry/intro-and-chassis-speeds.html
+
+  // Swerve Drive Kinematics & Odometry
+  // https://docs.wpilib.org/en/stable/docs/software/kinematics-and-odometry/swerve-drive-kinematics.html
+  // https://docs.wpilib.org/en/stable/docs/software/kinematics-and-odometry/swerve-drive-odometry.html
+
+  // Example docs for the majority of items
+  // https://docs.wpilib.org/en/stable/docs/software/examples-tutorials/wpilib-examples.html
+
+  // Vision for when we get a POC
+  // https://docs.wpilib.org/en/stable/docs/software/vision-processing/index.html#
 
   public void robotInit() {
 
@@ -39,22 +51,23 @@ public class Robot extends TimedRobot {
 
   }
 
-  public void autonomousPeriodic() {}
-
-  public void autonomousExit() {}
-
-  public void teleopInit() {
-
+  @Override
+  public void autonomousPeriodic() {
+    driveWithJoystick(false);
+    m_swerve.updateOdometry();
   }
 
-  public void teleopPeriodic() {}
-
-  public void teleopExit() {}
-
-  public void testInit() {
+  @Override
+  public void teleopPeriodic() {
+    driveWithJoystick(true);
   }
 
-  public void testPeriodic() {}
+  private void driveWithJoystick(boolean fieldRelative){
+    final var xSpeed = -MathUtil.applyDeadband(m_controller.getLeftY(), 0.02) * DriveTrain.kMaxSpeed;
+    final var ySpeed = -MathUtil.applyDeadband(m_controller.getLeftX(), 0.02) * DriveTrain.kMaxSpeed;
+    final var rot = -MathUtil.applyDeadband(m_controller.getRightX(), 0.02) * DriveTrain.kMaxSpeed;
 
-  public void testExit() {}
+    m_swerve.drive(xSpeed, ySpeed, rot, fieldRelative, getPeriod());
+  }
 }
+
